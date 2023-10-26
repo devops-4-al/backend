@@ -1,14 +1,35 @@
 services:
-  db:
+  db_devops:
     image: postgres:16.0
     environment:
       POSTGRES_USER: database-user
       POSTGRES_PASSWORD: database-password
       POSTGRES_DB: local-database
     ports:
-      - 5432:5432
+      - 5433:5432
     volumes:
       - dbdata:/var/lib/postgresql/data
+
+
+  web_python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #command: python manage.py runserver
+    volumes:
+      - .:/code
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_HOST=db_devops
+      - DATABASE_PORT=5432
+      - DATABASE_USER=database-user
+      - DATABASE_PASSWORD=database-password
+      - DATABASE_NAME=local-database
+    depends_on:
+      - db_devops
+
+
 
 volumes:
   dbdata: {}
