@@ -9,6 +9,7 @@ services:
       - 5433:5432
     volumes:
       - dbdata:/var/lib/postgresql/data
+    restart: always 
 
 
   web_python:
@@ -28,6 +29,7 @@ services:
       - DATABASE_NAME=local-database
     depends_on:
       - db_devops
+    restart: always
 
 
 
