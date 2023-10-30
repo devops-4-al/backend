@@ -27,4 +27,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/backend_web_python:tagname
-#pas besoin d'étape ici là
+
+      - name : Test for docker-compose file
+        run: docker-compose up -d
+
