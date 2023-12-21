@@ -1,0 +1,130 @@
+# Pour déployer: kubectl --kubeconfig votre-conf.yaml apply -f deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: gavin
+  name: postgres-demo-deployment-gavin
+  labels:
+    demo.app: postgres-demo-gavin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      demo.app: postgres-demo-gavin
+  template:
+    metadata:
+      labels:
+        demo.app: postgres-demo-gavin
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16.0
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: database-user
+            - name: POSTGRES_PASSWORD
+              value: database-password
+            - name: POSTGRES_DB
+              value: local-database
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: gavin
+  name: backend-demo-deployment-gavin
+  labels:
+    demo.app: backend-demo-gavin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      demo.app: backend-demo-gavin
+  template:
+    metadata:
+      labels:
+        demo.app: backend-demo-gavin
+    spec:
+      containers:
+        - name: backend
+          image: aperano/backend_web_python:tagname
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_HOST
+              value: db_devops
+            - name: DATABASE_PORT
+              value: 5431
+            - name: DATABASE_USER
+              value: database-user
+            - name: DATABASE_PASSWORD
+              value: database-password
+            - name: DATABASE_NAME
+              value: local-database
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: gavin
+  name: postgres-demo-gavin
+spec:
+  selector:
+    demo.app: postgres-demo-gavin
+  ports:
+    - protocol: TCP
+      port: 5431
+      targetPort: 5432
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: gavin
+  name: backend-demo-gavin
+spec:
+  selector:
+    demo.app: backend-demo-gavin
+  ports:
+    - protocol: TCP
+      port: 4567
+      targetPort: 8000
+
+    
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  namespace: gavin
+  labels:
+    app.kubernetes.io/component: controller
+  # Mettre un nom unique pour la classe ingress
+  name: nginx-demo-gavin-backend
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: k8s.io/ingress-nginx
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-demo-ingress
+  namespace: gavin
+spec:
+  ingressClassName: nginx-demo-gavin-backend
+  tls:
+    - hosts:
+        - backend.4al2.gavin.jbienvenu.fr
+      secretName: backend-demo-tls
+  rules:
+    - host: backend.4al2.gavin.jbienvenu.fr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-demo-gavin
+                port:
+                  number: 4567
