@@ -56,7 +56,7 @@ spec:
             - containerPort: 8000
           env:
             - name: DATABASE_HOST
-              value: db_devops
+              value: postgres-demo-gavin
             - name: DATABASE_PORT
               value: "5431"
             - name: DATABASE_USER
