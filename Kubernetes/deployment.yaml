@@ -118,6 +118,8 @@ kind: Ingress
 metadata:
   name: backend-demo-ingress
   namespace: gavin
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging-cluster-issuer
 spec:
   ingressClassName: nginx-demo-gavin-backend
   tls:
